@@ -27,8 +27,17 @@ import {
   Calendar,
   Sparkles,
   Search,
-  Filter
+  Lock,
+  Copy,
+  Check,
+  RotateCcw,
+  FileEdit,
+  ShieldCheck,
+  Download
 } from 'lucide-react';
+import { generatePatientPdfReport } from '../services/pdfReportGenerator';
+import { LabSparkline } from './LabSparkline';
+import { getPatient30DayLabHistory } from '../services/labHistoryService';
 
 interface ClinicalWorkbenchProps {
   initialPatientId?: string;
@@ -37,10 +46,19 @@ interface ClinicalWorkbenchProps {
 export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPatientId }) => {
   // Current patient state
   const [selectedCohortIndex, setSelectedCohortIndex] = useState<number>(0);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
   const [currentPatient, setCurrentPatient] = useState<PatientProfile>(MOCK_PATIENT_COHORTS[0]);
 
   // Intake active tab: 'symptoms' | 'biomarkers' | 'vitals' | 'history'
   const [activeIntakeTab, setActiveIntakeTab] = useState<'symptoms' | 'biomarkers' | 'vitals' | 'history'>('symptoms');
+
+  // Secure local-state temporary notes for clinicians (isolated per patient ID)
+  const [sessionNotes, setSessionNotes] = useState<Record<string, string>>({});
+  const [noteTimestamps, setNoteTimestamps] = useState<Record<string, string>>({});
+  const [copiedNote, setCopiedNote] = useState<boolean>(false);
+
+  const currentNote = sessionNotes[currentPatient.id] || '';
+  const currentNoteTimestamp = noteTimestamps[currentPatient.id] || '';
 
   // Prediction and AI consultation state
   const [prediction, setPrediction] = useState<PrognosticPredictionResult>(() =>
@@ -56,6 +74,47 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
   // New symptom addition dropdown
   const [selectedNewSymptomId, setSelectedNewSymptomId] = useState<string>('');
   const [newSymptomSeverity, setNewSymptomSeverity] = useState<number>(7);
+
+  // Note actions
+  const handleUpdateNote = (val: string) => {
+    setSessionNotes(prev => ({ ...prev, [currentPatient.id]: val }));
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setNoteTimestamps(prev => ({ ...prev, [currentPatient.id]: timeStr }));
+  };
+
+  const handleAppendSnippet = (snippet: string) => {
+    const existing = sessionNotes[currentPatient.id] || '';
+    const updated = existing.trim() ? `${existing.trim()}\n• ${snippet}` : `• ${snippet}`;
+    handleUpdateNote(updated);
+  };
+
+  const handleClearNote = () => {
+    setSessionNotes(prev => ({ ...prev, [currentPatient.id]: '' }));
+    setNoteTimestamps(prev => {
+      const copy = { ...prev };
+      delete copy[currentPatient.id];
+      return copy;
+    });
+  };
+
+  const handleCopyNote = () => {
+    if (!currentNote.trim()) return;
+    navigator.clipboard.writeText(currentNote);
+    setCopiedNote(true);
+    setTimeout(() => setCopiedNote(false), 2000);
+  };
+
+  const handleDownloadDirectPdf = () => {
+    setIsDownloadingPdf(true);
+    try {
+      generatePatientPdfReport(currentPatient, prediction, currentNote, aiRationale);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+    } finally {
+      setTimeout(() => setIsDownloadingPdf(false), 800);
+    }
+  };
 
   // Handle initial patient if passed
   useEffect(() => {
@@ -180,22 +239,32 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
               </h2>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+              <button
+                onClick={handleDownloadDirectPdf}
+                disabled={isDownloadingPdf}
+                className="px-3.5 py-2 text-xs font-semibold text-white bg-[#2D6A5F] hover:bg-[#23554C] active:scale-[0.98] rounded-lg transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                title="Download formatted clinical prognosis PDF report"
+              >
+                <Download className="w-3.5 h-3.5 text-[#6EE7B7]" />
+                <span>{isDownloadingPdf ? 'Generating PDF...' : 'Download PDF Report'}</span>
+              </button>
+
               <button
                 onClick={() => setIsExportModalOpen(true)}
-                className="px-4 py-2 text-xs font-semibold text-[#1F3633] bg-[#F3F2EC] hover:bg-[#EAE8DE] border border-[#D5D3C8] rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2 text-xs font-semibold text-[#1F3633] bg-[#F3F2EC] hover:bg-[#EAE8DE] border border-[#D5D3C8] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5 text-[#2D6A5F]" />
-                <span>Export EHR Report</span>
+                <span>EHR Preview & Print</span>
               </button>
 
               <button
                 onClick={handleRunInference}
                 disabled={isInferencing}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#1A3330] hover:bg-[#254642] active:scale-[0.98] rounded-lg transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#1A3330] hover:bg-[#254642] active:scale-[0.98] rounded-lg transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isInferencing ? 'animate-spin' : ''}`} />
-                <span>{isInferencing ? 'Computing ML Model...' : 'Run ML Prognosis'}</span>
+                <span>{isInferencing ? 'Computing ML...' : 'Run ML Prognosis'}</span>
               </button>
             </div>
           </div>
@@ -394,128 +463,211 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
                 </div>
               )}
 
-              {/* Tab 2: Biomarkers Panel */}
+              {/* Tab 2: Biomarkers Panel with 30-Day Sparklines */}
               {activeIntakeTab === 'biomarkers' && (
                 <div className="p-5 space-y-4">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-[#182C29]">Key Quantitative Biomarkers</span>
-                    <span className="text-[#6C7E7A] text-[11px]">Adjust values to test ML sensitivity</span>
+                    <div>
+                      <span className="font-semibold text-[#182C29] block">Quantitative Biomarkers & 30-Day Sparklines</span>
+                      <span className="text-[#6C7E7A] text-[11px]">Hover over nodes to inspect 30-day trajectory</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-[#2D6A5F] bg-[#2D6A5F]/8 px-2 py-0.5 rounded border border-[#2D6A5F]/20">
+                      Live Recalibration
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     {/* eGFR */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>eGFR (Renal)</span>
-                        <span className="text-[10px] font-mono">mL/min</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">eGFR (Renal)</span>
+                          <span className="text-[10px] font-mono">mL/min/1.73m²</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            value={currentPatient.biomarkers.eGFR}
+                            onChange={(e) => handleUpdateBiomarker('eGFR', parseFloat(e.target.value) || 0)}
+                            className="w-18 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.eGFR < 30 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.eGFR < 15 ? 'Stage 5 ESRD' : currentPatient.biomarkers.eGFR < 30 ? 'Severe CKD' : 'Adequate'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          value={currentPatient.biomarkers.eGFR}
-                          onChange={(e) => handleUpdateBiomarker('eGFR', parseFloat(e.target.value) || 0)}
-                          className="w-16 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="eGFR"
+                          unit="mL/min"
+                          history={getPatient30DayLabHistory(currentPatient, 'eGFR')}
+                          currentValue={currentPatient.biomarkers.eGFR}
+                          normalRange="> 60"
+                          isHigherWorse={false}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.eGFR < 30 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.eGFR < 15 ? 'Stage 5' : currentPatient.biomarkers.eGFR < 30 ? 'Severe CKD' : 'Adequate'}
-                        </span>
                       </div>
                     </div>
 
                     {/* CA 19-9 */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>CA 19-9 (Pancreato-Biliary)</span>
-                        <span className="text-[10px] font-mono">U/mL</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">CA 19-9 (Pancreato-Biliary)</span>
+                          <span className="text-[10px] font-mono">U/mL</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            value={currentPatient.biomarkers.ca19_9}
+                            onChange={(e) => handleUpdateBiomarker('ca19_9', parseFloat(e.target.value) || 0)}
+                            className="w-20 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.ca19_9 > 37 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.ca19_9 > 200 ? 'Severe Tumor Burden' : 'Normal <37'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          value={currentPatient.biomarkers.ca19_9}
-                          onChange={(e) => handleUpdateBiomarker('ca19_9', parseFloat(e.target.value) || 0)}
-                          className="w-16 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="CA 19-9"
+                          unit="U/mL"
+                          history={getPatient30DayLabHistory(currentPatient, 'ca19_9')}
+                          currentValue={currentPatient.biomarkers.ca19_9}
+                          normalRange="< 37"
+                          isHigherWorse={true}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.ca19_9 > 37 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.ca19_9 > 200 ? 'Severe Elevation' : 'Normal <37'}
-                        </span>
                       </div>
                     </div>
 
                     {/* Total Bilirubin */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>Total Bilirubin</span>
-                        <span className="text-[10px] font-mono">mg/dL</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">Total Bilirubin</span>
+                          <span className="text-[10px] font-mono">mg/dL</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={currentPatient.biomarkers.totalBilirubin}
+                            onChange={(e) => handleUpdateBiomarker('totalBilirubin', parseFloat(e.target.value) || 0)}
+                            className="w-18 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.totalBilirubin > 2.0 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.totalBilirubin > 3 ? 'Overt Icterus' : 'Normal <1.2'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={currentPatient.biomarkers.totalBilirubin}
-                          onChange={(e) => handleUpdateBiomarker('totalBilirubin', parseFloat(e.target.value) || 0)}
-                          className="w-16 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="Total Bilirubin"
+                          unit="mg/dL"
+                          history={getPatient30DayLabHistory(currentPatient, 'totalBilirubin')}
+                          currentValue={currentPatient.biomarkers.totalBilirubin}
+                          normalRange="< 1.2"
+                          isHigherWorse={true}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.totalBilirubin > 2.0 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.totalBilirubin > 3 ? 'Icterus' : 'Normal <1.2'}
-                        </span>
                       </div>
                     </div>
 
                     {/* NT-proBNP */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>NT-proBNP (Cardiac)</span>
-                        <span className="text-[10px] font-mono">pg/mL</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">NT-proBNP (Cardiovascular)</span>
+                          <span className="text-[10px] font-mono">pg/mL</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            value={currentPatient.biomarkers.ntProBnp}
+                            onChange={(e) => handleUpdateBiomarker('ntProBnp', parseFloat(e.target.value) || 0)}
+                            className="w-22 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.ntProBnp > 1800 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.ntProBnp > 5000 ? 'Severe Wall Stress' : 'Normal <450'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          value={currentPatient.biomarkers.ntProBnp}
-                          onChange={(e) => handleUpdateBiomarker('ntProBnp', parseFloat(e.target.value) || 0)}
-                          className="w-20 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="NT-proBNP"
+                          unit="pg/mL"
+                          history={getPatient30DayLabHistory(currentPatient, 'ntProBnp')}
+                          currentValue={currentPatient.biomarkers.ntProBnp}
+                          normalRange="< 450"
+                          isHigherWorse={true}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.ntProBnp > 1800 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.ntProBnp > 5000 ? 'Severe Wall Stress' : 'Normal <450'}
-                        </span>
                       </div>
                     </div>
 
                     {/* Serum Albumin */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>Serum Albumin</span>
-                        <span className="text-[10px] font-mono">g/dL</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">Serum Albumin</span>
+                          <span className="text-[10px] font-mono">g/dL</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={currentPatient.biomarkers.serumAlbumin}
+                            onChange={(e) => handleUpdateBiomarker('serumAlbumin', parseFloat(e.target.value) || 0)}
+                            className="w-18 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.serumAlbumin < 3.0 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.serumAlbumin < 2.8 ? 'Severe Sarcopenia' : 'Normal >3.5'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={currentPatient.biomarkers.serumAlbumin}
-                          onChange={(e) => handleUpdateBiomarker('serumAlbumin', parseFloat(e.target.value) || 0)}
-                          className="w-16 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="Serum Albumin"
+                          unit="g/dL"
+                          history={getPatient30DayLabHistory(currentPatient, 'serumAlbumin')}
+                          currentValue={currentPatient.biomarkers.serumAlbumin}
+                          normalRange="> 3.5"
+                          isHigherWorse={false}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.serumAlbumin < 3.0 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.serumAlbumin < 2.8 ? 'Severe Sarcopenia' : 'Normal >3.5'}
-                        </span>
                       </div>
                     </div>
 
                     {/* FEV1 % */}
-                    <div className="p-2.5 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD]">
-                      <div className="flex items-center justify-between text-[#5C6E6B]">
-                        <span>FEV1 % Predicted</span>
-                        <span className="text-[10px] font-mono">%</span>
+                    <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#E7E5DD] flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[#5C6E6B]">
+                          <span className="font-semibold text-[#1A2E2A]">FEV1 % Predicted</span>
+                          <span className="text-[10px] font-mono">%</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <input
+                            type="number"
+                            value={currentPatient.biomarkers.fev1Percent}
+                            onChange={(e) => handleUpdateBiomarker('fev1Percent', parseFloat(e.target.value) || 0)}
+                            className="w-18 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded focus:ring-1 focus:ring-[#2D6A5F]"
+                          />
+                          <span className={`text-[10px] font-mono font-bold ${currentPatient.biomarkers.fev1Percent < 50 ? 'text-[#B91C1C]' : 'text-[#2D6A5F]'}`}>
+                            {currentPatient.biomarkers.fev1Percent < 50 ? 'Severe Restriction' : 'Adequate'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <input
-                          type="number"
-                          value={currentPatient.biomarkers.fev1Percent}
-                          onChange={(e) => handleUpdateBiomarker('fev1Percent', parseFloat(e.target.value) || 0)}
-                          className="w-16 py-0.5 px-1.5 text-sm font-bold font-mono bg-white border border-[#D8D6CC] rounded"
+
+                      <div className="mt-3 pt-2.5 border-t border-[#EAE8E0]">
+                        <LabSparkline
+                          label="FEV1 %"
+                          unit="%"
+                          history={getPatient30DayLabHistory(currentPatient, 'fev1Percent')}
+                          currentValue={currentPatient.biomarkers.fev1Percent}
+                          normalRange="> 80%"
+                          isHigherWorse={false}
                         />
-                        <span className={`text-[10px] font-mono ${currentPatient.biomarkers.fev1Percent < 50 ? 'text-[#B91C1C] font-bold' : 'text-[#2D6A5F]'}`}>
-                          {currentPatient.biomarkers.fev1Percent < 50 ? 'Severe Restriction' : 'Adequate'}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -646,6 +798,136 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
               </div>
 
             </div>
+
+            {/* ================= SECURE CLINICIAN SCRATCHPAD / TEMPORARY NOTES ================= */}
+            <div className="bg-white rounded-2xl border border-[#DFDDD4] shadow-sm overflow-hidden">
+              <div className="p-4 bg-[#FAF9F6] border-b border-[#E5E3D9] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#2D6A5F]/10 flex items-center justify-center text-[#2D6A5F] shrink-0">
+                    <FileEdit className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-semibold text-[#182C29] flex items-center gap-1.5">
+                      <span>Temporary Clinician Notes</span>
+                    </h3>
+                    <span className="text-[10px] text-[#657673] block">
+                      Active: {currentPatient.fullName} · <span className="font-mono">{currentPatient.mrn}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#2D6A5F] bg-[#2D6A5F]/8 px-2 py-0.5 rounded border border-[#2D6A5F]/20 shrink-0">
+                  <Lock className="w-3 h-3 text-[#2D6A5F]" />
+                  <span>Local Memory Only</span>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {/* Text area */}
+                <div className="relative">
+                  <textarea
+                    value={currentNote}
+                    onChange={(e) => handleUpdateNote(e.target.value)}
+                    rows={5}
+                    placeholder={`Log temporary clinical observations, bedside findings, family conference notes, or differential thoughts for ${currentPatient.fullName}... (Ephemeral session scratchpad — saved in client-side memory only)`}
+                    className="w-full p-3 text-xs bg-[#FCFCFA] text-[#1E2F2C] border border-[#DDD9CF] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#2D6A5F] focus:border-[#2D6A5F] placeholder:text-[#9AA7A4] leading-relaxed resize-y transition-all"
+                  />
+                </div>
+
+                {/* Metadata and Stats bar */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#6A7B78] pt-1">
+                  <div className="flex items-center gap-2.5 font-mono tabular-nums text-[10px]">
+                    <span>{currentNote.length} chars</span>
+                    <span aria-hidden="true" className="text-[#CCD7D4]">·</span>
+                    <span>{currentNote.trim() ? currentNote.trim().split(/\s+/).length : 0} words</span>
+                    {currentNoteTimestamp && (
+                      <>
+                        <span aria-hidden="true" className="text-[#CCD7D4]">·</span>
+                        <span className="text-[#516461]">Saved {currentNoteTimestamp}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {currentNote.trim() && (
+                      <button
+                        type="button"
+                        onClick={handleClearNote}
+                        className="px-2 py-0.5 text-[10px] text-[#71827E] hover:text-[#B91C1C] hover:bg-[#FEE2E2]/40 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Clear this patient's temporary note"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Clear</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleCopyNote}
+                      disabled={!currentNote.trim()}
+                      className="px-2.5 py-1 text-[11px] font-semibold text-[#182C29] bg-[#F2F1EB] hover:bg-[#EAE8DE] disabled:opacity-40 rounded-lg border border-[#D5D3C8] transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      {copiedNote ? (
+                        <>
+                          <Check className="w-3 h-3 text-[#2D6A5F]" />
+                          <span className="text-[#2D6A5F]">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadDirectPdf}
+                      disabled={isDownloadingPdf}
+                      className="px-2.5 py-1 text-[11px] font-semibold text-[#2D6A5F] bg-[#2D6A5F]/8 hover:bg-[#2D6A5F]/15 rounded-lg border border-[#2D6A5F]/20 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-40"
+                      title="Download formatted PDF with current clinical notes"
+                    >
+                      <Download className="w-3 h-3 text-[#2D6A5F]" />
+                      <span>{isDownloadingPdf ? 'Generating...' : 'PDF'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Clinical Observation Snippets */}
+                <div className="pt-2 border-t border-[#EFECE5]">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#667774] block mb-1.5">
+                    Insert Quick Clinical Observation Snippets:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      'Palliative comfort goals reviewed with patient & healthcare proxy',
+                      'Diaphragmatic fatigue & nocturnal orthopnea noted on bedside assessment',
+                      'Advance care directive (POLST/MOLST) documentation initiated',
+                      'Symptom relief regimen adjusted; avoiding contraindicated nephrotoxic agents',
+                      'Confirmatory diagnostic imaging and specialty multidisciplinary board pending'
+                    ].map((snippet, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleAppendSnippet(snippet)}
+                        className="text-[10px] text-[#334643] bg-[#F5F4EE] hover:bg-[#EAE8DE] border border-[#DDD9CE] rounded-md px-2 py-1 text-left transition-colors cursor-pointer"
+                      >
+                        + {snippet}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Security Assurance Guarantee Note */}
+                <div className="pt-2 flex items-start gap-2 text-[10px] text-[#7A8A87] leading-relaxed">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2D6A5F] shrink-0 mt-0.5" />
+                  <span>
+                    Local-state guarantee: Notes are kept in browser memory only and isolated per patient MRN. Notes are not transmitted across the network or logged to external telemetry, and will automatically accompany your EHR report export.
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           {/* ================= RIGHT COLUMN: PREDICTIVE RESULTS & STAGING ================= */}
@@ -877,6 +1159,7 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
         patient={currentPatient}
         prediction={prediction}
         aiRationaleText={aiRationale}
+        clinicianNotes={currentNote}
       />
     </div>
   );

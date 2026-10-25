@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Copy, Check, Printer, FileText, Download } from 'lucide-react';
 import { PatientProfile, PrognosticPredictionResult } from '../types/clinical';
+import { generatePatientPdfReport } from '../services/pdfReportGenerator';
 
 interface ExportSummaryModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface ExportSummaryModalProps {
   patient: PatientProfile;
   prediction: PrognosticPredictionResult;
   aiRationaleText: string;
+  clinicianNotes?: string;
 }
 
 export const ExportSummaryModal: React.FC<ExportSummaryModalProps> = ({
@@ -15,11 +17,24 @@ export const ExportSummaryModal: React.FC<ExportSummaryModalProps> = ({
   onClose,
   patient,
   prediction,
-  aiRationaleText
+  aiRationaleText,
+  clinicianNotes = ''
 }) => {
   const [copied, setCopied] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleDownloadPdf = () => {
+    setDownloadingPdf(true);
+    try {
+      generatePatientPdfReport(patient, prediction, clinicianNotes, aiRationaleText);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+    } finally {
+      setTimeout(() => setDownloadingPdf(false), 800);
+    }
+  };
 
   const fullReportText = `===================================================================
 PROGNOSIS FLOW — CLINICAL DECISION SUPPORT & PROGNOSTIC REPORT
@@ -55,7 +70,10 @@ ${prediction.palliativePathways.map(p => `• [${p.category} - ${p.evidenceGrade
 
 CLINICAL SYNTHESIS & RATIONALE:
 ${aiRationaleText || prediction.clinicalRationale}
-
+${clinicianNotes.trim() ? `
+ATTENDING CLINICIAN SESSION NOTES (LOCAL OBSERVATIONS):
+${clinicianNotes.trim()}
+` : ''}
 MODEL SPECIFICATIONS:
 Engine: ${prediction.modelMetadata.modelVersion}
 Validation: ROC-AUC ${prediction.modelMetadata.rocAuc} | Brier Score ${prediction.modelMetadata.calibrationBrierScore}
@@ -138,10 +156,10 @@ Predictions must be corroborated with full clinical history, tissue biopsy/imagi
             Close Window
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 text-xs font-medium text-[#182C29] bg-[#F3F2EC] hover:bg-[#EAE8E0] rounded-lg border border-[#D8D6CC] transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-medium text-[#182C29] bg-[#F3F2EC] hover:bg-[#EAE8E0] rounded-lg border border-[#D8D6CC] transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print Note</span>
@@ -149,10 +167,19 @@ Predictions must be corroborated with full clinical history, tissue biopsy/imagi
 
             <button
               onClick={handleCopy}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#182C29] hover:bg-[#25423E] rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2 text-xs font-semibold text-[#182C29] bg-[#F1F0E9] hover:bg-[#E6E4D9] rounded-lg border border-[#D5D3C8] transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
-              {copied ? <Check className="w-4 h-4 text-[#6EE7B7]" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied to Clipboard' : 'Copy Full Summary'}</span>
+              {copied ? <Check className="w-4 h-4 text-[#2D6A5F]" /> : <Copy className="w-4 h-4" />}
+              <span>{copied ? 'Copied' : 'Copy Text'}</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="px-4 py-2 text-xs font-semibold text-white bg-[#2D6A5F] hover:bg-[#23554C] rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
+            >
+              <Download className="w-4 h-4 text-[#6EE7B7]" />
+              <span>{downloadingPdf ? 'Generating PDF...' : 'Download Formatted PDF'}</span>
             </button>
           </div>
         </div>
