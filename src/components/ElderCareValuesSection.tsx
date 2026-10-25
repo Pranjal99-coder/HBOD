@@ -17,7 +17,7 @@ export const ElderCareValuesSection: React.FC = () => {
             Transforming terminal prognosis from uncertainty into compassionate care.
           </h2>
           <p className="mt-4 text-[#4C5E5A] text-base leading-relaxed">
-            Machine learning accuracy is only meaningful when it serves human dignity. Prognosis Flow provides healthcare professionals with early, calibrated foresight so that patient comfort, palliative support, and family goals are prioritized well before crisis events.
+            Machine learning accuracy is only meaningful when it serves human dignity. PrognosAI provides healthcare professionals with early, calibrated foresight so that patient comfort, palliative support, and family goals are prioritized well before crisis events.
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export const ElderCareValuesSection: React.FC = () => {
             </div>
             <div>
               <p className="text-base sm:text-lg font-serif italic text-[#1C2F2C] leading-relaxed">
-                &ldquo;Predictive machine learning in terminal illness is not about predicting the end; it is about protecting the time that remains. Prognosis Flow gives our clinical team the certainty needed to recommend comfort-first pathways before irreversible decline occurs.&rdquo;
+                &ldquo;Predictive machine learning in terminal illness is not about predicting the end; it is about protecting the time that remains. PrognosAI gives our clinical team the certainty needed to recommend comfort-first pathways before irreversible decline occurs.&rdquo;
               </p>
               <div className="mt-3 text-xs text-[#576A66]">
                 <strong className="text-[#152725]">Dr. Eleanor Vance, MD</strong> · Chief of Palliative Oncology, St. Jude University Health System

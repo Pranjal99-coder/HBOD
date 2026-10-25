@@ -1,5 +1,6 @@
 import React from 'react';
-import { Stethoscope } from 'lucide-react';
+import { Stethoscope, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface FooterProps {
   onSelectTab: (tab: 'landing' | 'workbench' | 'analytics') => void;
@@ -10,6 +11,8 @@ export const Footer: React.FC<FooterProps> = ({
   onSelectTab,
   onSelectSamplePatient
 }) => {
+  const { isDark, toggleTheme } = useTheme();
+
   return (
     <footer className="bg-[#142624] text-[#BACEC9] py-16 border-t border-[#233F3B]">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
@@ -21,7 +24,7 @@ export const Footer: React.FC<FooterProps> = ({
               <span className="w-8 h-8 rounded-lg bg-[#2D6A5F] flex items-center justify-center text-white shrink-0">
                 <Stethoscope className="w-4 h-4" />
               </span>
-              <span>Prognosis Flow</span>
+              <span>PrognosAI</span>
             </div>
             <p className="text-xs text-[#95ACA6] max-w-sm leading-relaxed">
               Clinical decision support and calibrated machine learning models predicting terminal illness trajectories, disease staging, and supportive palliative pathways for healthcare professionals.
@@ -149,8 +152,17 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Quiet copyright & metadata bottom row */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#7B958E]">
-          <div>
-            &copy; {new Date().getFullYear()} Prognosis Flow Inc. All rights reserved. Built for licensed healthcare professionals.
+          <div className="flex flex-wrap items-center gap-3">
+            <span>&copy; {new Date().getFullYear()} PrognosAI Inc. All rights reserved.</span>
+            <span aria-hidden="true" className="text-white/20">·</span>
+            <button
+              onClick={toggleTheme}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 font-mono text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10"
+              title={isDark ? "Switch to daylight mode" : "Switch to hospital night mode"}
+            >
+              {isDark ? <Sun className="w-3 h-3 text-[#FBBF24]" /> : <Moon className="w-3 h-3 text-[#6EE7B7]" />}
+              <span>{isDark ? 'Daylight Mode' : 'Hospital Night Mode'}</span>
+            </button>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Clinical Decision Support System</span>

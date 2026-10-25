@@ -14,9 +14,12 @@ import {
   Share2,
   Clock,
   Sparkles,
-  Stethoscope
+  Stethoscope,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { MOCK_PATIENT_COHORTS } from '../data/mockPatients';
+import { useTheme } from '../context/ThemeContext';
 
 interface AnalyticsDashboardProps {
   onLoadPatientIntoWorkbench: (patientId: string) => void;
@@ -30,6 +33,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   onLoadPatientIntoWorkbench,
   onOpenWorkbench
 }) => {
+  const { isDark, toggleTheme } = useTheme();
   const [specialty, setSpecialty] = useState<SpecialtyFilter>('all');
   const [timeRange, setTimeRange] = useState<TimeRangeFilter>('12m');
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null);
@@ -134,6 +138,18 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     }
   ];
 
+  const getCohortColor = (id: string, defaultColor: string) => {
+    if (!isDark) return defaultColor;
+    switch (id) {
+      case 'als': return '#34D399';
+      case 'pancreatic': return '#F87171';
+      case 'heart_failure': return '#FBBF24';
+      case 'cirrhosis': return '#C084FC';
+      case 'ipf': return '#38BDF8';
+      default: return defaultColor;
+    }
+  };
+
   // Specialty multiplier for dynamic KPI scaling
   const multiplier = useMemo(() => {
     switch (specialty) {
@@ -217,7 +233,27 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                onClick={toggleTheme}
+                type="button"
+                aria-label={isDark ? "Switch to daylight mode" : "Switch to low-light hospital night mode"}
+                title={isDark ? "High-Contrast Hospital Night Mode Active (Click for Daylight)" : "Switch to High-Contrast Hospital Night Mode (Low-Light Eye Relief)"}
+                className="px-3 py-2 text-xs font-semibold rounded-xl border border-[#DFDDD4] dark:border-[#2A3E39] text-[#283C39] dark:text-[#E2ECE9] bg-[#F7F6F1] dark:bg-[#15221F] hover:bg-[#ECEAE2] dark:hover:bg-[#1D2E29] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-[#FBBF24]" />
+                    <span>Daylight</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-[#2D6A5F]" />
+                    <span>Night Mode</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={onOpenWorkbench}
                 className="px-5 py-2.5 text-xs font-semibold text-white bg-[#1A3330] hover:bg-[#254642] active:scale-[0.98] rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
@@ -429,8 +465,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               >
                 <defs>
                   <linearGradient id="inferencesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#182C29" stopOpacity="0.12" />
-                    <stop offset="100%" stopColor="#182C29" stopOpacity="0.0" />
+                    <stop offset="0%" stopColor={isDark ? "#34D399" : "#182C29"} stopOpacity={isDark ? 0.2 : 0.12} />
+                    <stop offset="100%" stopColor={isDark ? "#34D399" : "#182C29"} stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
 
@@ -485,7 +521,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 <path
                   d={inferencesPath}
                   fill="none"
-                  stroke="#182C29"
+                  stroke={isDark ? "#E2ECE9" : "#182C29"}
                   strokeWidth="2.5"
                   strokeLinejoin="round"
                 />
@@ -494,7 +530,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 <path
                   d={highRiskPath}
                   fill="none"
-                  stroke="#DC2626"
+                  stroke={isDark ? "#F87171" : "#DC2626"}
                   strokeWidth="2"
                   strokeDasharray="4 2"
                   strokeLinejoin="round"
@@ -504,7 +540,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 <path
                   d={palliativePath}
                   fill="none"
-                  stroke="#2D6A5F"
+                  stroke={isDark ? "#34D399" : "#2D6A5F"}
                   strokeWidth="2.5"
                   strokeLinejoin="round"
                 />
@@ -526,8 +562,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                         cx={x}
                         cy={y}
                         r={isHovered ? '6' : '3.5'}
-                        fill="#FFFFFF"
-                        stroke="#182C29"
+                        fill={isDark ? "#121C1A" : "#FFFFFF"}
+                        stroke={isDark ? "#E2ECE9" : "#182C29"}
                         strokeWidth="2"
                         className="transition-all"
                       />
@@ -581,22 +617,25 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
             {/* Interactive Cohort Toggle Buttons */}
             <div className="mt-4 flex flex-wrap gap-1.5 text-xs">
-              {cohortSurvivalCurves.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setHoveredCohortTrend(hoveredCohortTrend === c.id ? null : c.id)}
-                  className={`px-2.5 py-1 rounded-md font-mono text-[11px] transition-all cursor-pointer border ${
-                    hoveredCohortTrend === c.id || hoveredCohortTrend === null
-                      ? 'bg-white border-[#DCDAD0] shadow-2xs font-semibold'
-                      : 'bg-[#F6F5F0] text-[#869794] border-transparent opacity-60'
-                  }`}
-                  style={{
-                    color: hoveredCohortTrend === c.id || hoveredCohortTrend === null ? c.color : undefined
-                  }}
-                >
-                  {c.name.split(' ')[0]} ({c.median}m)
-                </button>
-              ))}
+              {cohortSurvivalCurves.map(c => {
+                const curveColor = getCohortColor(c.id, c.color);
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setHoveredCohortTrend(hoveredCohortTrend === c.id ? null : c.id)}
+                    className={`px-2.5 py-1 rounded-md font-mono text-[11px] transition-all cursor-pointer border ${
+                      hoveredCohortTrend === c.id || hoveredCohortTrend === null
+                        ? 'bg-white border-[#DCDAD0] shadow-2xs font-semibold'
+                        : 'bg-[#F6F5F0] text-[#869794] border-transparent opacity-60'
+                    }`}
+                    style={{
+                      color: hoveredCohortTrend === c.id || hoveredCohortTrend === null ? curveColor : undefined
+                    }}
+                  >
+                    {c.name.split(' ')[0]} ({c.median}m)
+                  </button>
+                );
+              })}
             </div>
 
             {/* Mini Multi-line SVG Chart */}
@@ -624,7 +663,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   y1={15 + 0.5 * 170}
                   x2={440}
                   y2={15 + 0.5 * 170}
-                  stroke="#D97706"
+                  stroke={isDark ? "#FBBF24" : "#D97706"}
                   strokeWidth="1"
                   strokeDasharray="2 2"
                 />
@@ -644,6 +683,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   const isHighlighted = hoveredCohortTrend === null || hoveredCohortTrend === c.id;
                   const opacity = isHighlighted ? 1 : 0.2;
                   const strokeW = hoveredCohortTrend === c.id ? 3 : 2;
+                  const curveColor = getCohortColor(c.id, c.color);
 
                   const pointsPath = c.points.reduce((acc, pt, i) => {
                     const x = 36 + (pt.m / 36) * (440 - 36);
@@ -656,7 +696,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <path
                         d={pointsPath}
                         fill="none"
-                        stroke={c.color}
+                        stroke={curveColor}
                         strokeWidth={strokeW}
                         strokeOpacity={opacity}
                         strokeLinejoin="round"
@@ -687,7 +727,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                 Active Cohort Intakes & Longitudinal Records
               </h3>
               <p className="text-xs text-[#627571] mt-0.5">
-                Detailed clinical profiles loaded in the Prognosis Flow institutional registry
+                Detailed clinical profiles loaded in the PrognosAI institutional registry
               </p>
             </div>
 

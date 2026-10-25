@@ -1,17 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-serif: 'Fraunces', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* =========================================================================
+   DAYLIGHT THEME (CLINICAL WORKSTATION PALETTE)
+   High clarity, warm bone/parchment surfaces, deep ink typography
+   ========================================================================= */
+
 body {
   font-family: var(--font-sans);
   background-color: #FAFAF8;
-  color: #1A202C;
+  color: #1A2624;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom subtle scrollbars */
@@ -28,4 +36,486 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+
+/* Day Mode inputs & textareas typography */
+input, select, textarea {
+  color: #142624;
+}
+input::placeholder, textarea::placeholder {
+  color: #7E908D;
+}
+
+/* =========================================================================
+   CLINICAL HIGH-CONTRAST DARK MODE (FOR LOW-LIGHT HOSPITAL ENVIRONMENTS)
+   Calibrated for nocturnal rounds, oncology/ICU monitor viewing, and eye comfort
+   ========================================================================= */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0A100E;
+  color: #EDF3F1;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0E1614;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #253833;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3B544E;
+}
+
+/* Header & Sticky Elements */
+html.dark header {
+  background-color: rgba(10, 16, 14, 0.94) !important;
+  border-color: #1E312C !important;
+}
+
+/* Primary Page & Container Backgrounds */
+html.dark .bg-\[\#FAFAF8\],
+html.dark .bg-\[\#FAF9F5\],
+html.dark .bg-\[\#FAF9F6\],
+html.dark .bg-\[\#FAF8F5\],
+html.dark .bg-\[\#FBFBFA\] {
+  background-color: #0A100E !important;
+}
+
+/* Cards & Surface Elevators */
+html.dark .bg-white,
+html.dark .bg-\[\#FFFFFF\] {
+  background-color: #121C1A !important;
+}
+
+html.dark .bg-white\/95 {
+  background-color: rgba(18, 28, 26, 0.95) !important;
+}
+
+html.dark .bg-\[\#FCFCFA\],
+html.dark .bg-\[\#FCFCFB\],
+html.dark .bg-\[\#F8F7F3\],
+html.dark .bg-\[\#F8FAF9\] {
+  background-color: #14201D !important;
+}
+
+html.dark .bg-\[\#F6F8F7\],
+html.dark .bg-\[\#F6F5F1\],
+html.dark .bg-\[\#F6F5F0\],
+html.dark .bg-\[\#F5F4EE\],
+html.dark .bg-\[\#F5F4EF\],
+html.dark .bg-\[\#F4F3EE\],
+html.dark .bg-\[\#F4F8F7\],
+html.dark .bg-\[\#F3F2EC\],
+html.dark .bg-\[\#F2F1EB\],
+html.dark .bg-\[\#F1F0E9\],
+html.dark .bg-\[\#F1F0E8\],
+html.dark .bg-\[\#F0EFE9\],
+html.dark .bg-\[\#EFECE6\],
+html.dark .bg-\[\#EFEFE8\],
+html.dark .bg-\[\#ECEAE2\],
+html.dark .bg-\[\#EAE8DE\],
+html.dark .bg-\[\#EAE8E0\],
+html.dark .bg-\[\#E7E5DC\],
+html.dark .bg-\[\#E6E4D9\],
+html.dark .bg-\[\#E5E2D9\],
+html.dark .bg-\[\#E2DFD7\],
+html.dark .bg-\[\#EAE7DC\] {
+  background-color: #172622 !important;
+}
+
+html.dark .bg-\[\#EAF2EE\] {
+  background-color: #152E28 !important;
+}
+
+/* Banner, Navigation & Elevated Accents */
+html.dark .bg-\[\#182C29\],
+html.dark .bg-\[\#112220\],
+html.dark .bg-\[\#142624\],
+html.dark .bg-\[\#172D29\] {
+  background-color: #0D1715 !important;
+}
+
+html.dark .bg-\[\#182F2C\],
+html.dark .bg-\[\#1A3330\] {
+  background-color: #18332D !important;
+}
+
+/* Active buttons & tabs that need emphasis in dark mode */
+html.dark button.bg-\[\#182C29\],
+html.dark .bg-\[\#182C29\].text-white {
+  background-color: #1B3F36 !important;
+  border-color: #2D6A5F !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .bg-white.text-\[\#152725\] {
+  background-color: #243D36 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .hover\:bg-\[\#254440\]:hover,
+html.dark .hover\:bg-\[\#254642\]:hover {
+  background-color: #274E47 !important;
+}
+
+/* Status & Diagnostic Tints */
+html.dark .bg-\[\#FEF2F2\],
+html.dark .bg-\[\#FEE2E2\] {
+  background-color: #271313 !important;
+}
+
+html.dark .bg-\[\#FEF3C7\],
+html.dark .bg-\[\#FFFDF5\],
+html.dark .bg-\[\#FFFBEB\] {
+  background-color: #241B0B !important;
+}
+
+/* Comprehensive Borders in Dark Mode */
+html.dark .border-\[\#E8E6E0\],
+html.dark .border-\[\#DFDDD4\],
+html.dark .border-\[\#E7E5DF\],
+html.dark .border-\[\#EAE8E0\],
+html.dark .border-\[\#EAE8E1\],
+html.dark .border-\[\#EAE8DF\],
+html.dark .border-\[\#EBE9E1\],
+html.dark .border-\[\#EBE9E3\],
+html.dark .border-\[\#E7E5E0\],
+html.dark .border-\[\#E7E5DD\],
+html.dark .border-\[\#E7E5DC\],
+html.dark .border-\[\#EAE8E2\],
+html.dark .border-\[\#DEDBD2\],
+html.dark .border-\[\#EFECE5\],
+html.dark .border-\[\#E8E6DF\],
+html.dark .border-\[\#E9E7E0\],
+html.dark .border-\[\#E6E3D8\],
+html.dark .border-\[\#E5E3D9\],
+html.dark .border-\[\#E4E2D8\],
+html.dark .border-\[\#E3E1D7\],
+html.dark .border-\[\#E2E0D6\],
+html.dark .border-\[\#E2DFD6\],
+html.dark .border-\[\#E0DED5\],
+html.dark .border-\[\#E0DDD5\],
+html.dark .border-\[\#DFDCDB\],
+html.dark .border-\[\#DCD8CD\],
+html.dark .border-\[\#DCDAD0\],
+html.dark .border-\[\#DDD9CE\],
+html.dark .border-\[\#DDD9CF\],
+html.dark .border-\[\#D8D6CE\],
+html.dark .border-\[\#D8D6CC\],
+html.dark .border-\[\#D8D6CB\],
+html.dark .border-\[\#D5E4DF\],
+html.dark .border-\[\#D5D3C9\],
+html.dark .border-\[\#D5D3C8\],
+html.dark .border-\[\#D5D2C8\],
+html.dark .border-\[\#D5D2C7\],
+html.dark .border-\[\#D4E4E0\],
+html.dark .border-\[\#D4E3DE\],
+html.dark .border-\[\#D4E2DC\],
+html.dark .border-\[\#D4D2C6\],
+html.dark .border-\[\#D0CDC2\],
+html.dark .border-\[\#CFCCC2\],
+html.dark .border-\[\#CFCCC0\] {
+  border-color: #223631 !important;
+}
+
+html.dark .border-\[\#D0E2DB\] {
+  border-color: #1F453B !important;
+}
+
+html.dark .border-\[\#24423D\],
+html.dark .border-\[\#25423D\],
+html.dark .border-\[\#233F3B\] {
+  border-color: #1A312B !important;
+}
+
+html.dark .border-\[\#FECACA\] {
+  border-color: #5C2222 !important;
+}
+
+html.dark .border-\[\#FDE68A\] {
+  border-color: #584414 !important;
+}
+
+/* =========================================================================
+   COMPREHENSIVE FONT COLORS IN NIGHT THEME
+   Level 1: Headings, Hero titles, Key Patient IDs & Metrics -> #F3F7F5
+   ========================================================================= */
+
+html.dark .text-\[\#112220\],
+html.dark .text-\[\#112321\],
+html.dark .text-\[\#122824\],
+html.dark .text-\[\#142624\],
+html.dark .text-\[\#142825\],
+html.dark .text-\[\#152725\],
+html.dark .text-\[\#182625\],
+html.dark .text-\[\#182B28\],
+html.dark .text-\[\#182C29\],
+html.dark .text-\[\#1A202C\],
+html.dark .text-\[\#1A2624\],
+html.dark .text-\[\#1A2E2A\],
+html.dark .text-\[\#1A2E2B\],
+html.dark .text-\[\#1A3330\],
+html.dark .text-\[\#1C2F2C\],
+html.dark .text-\[\#1D3530\],
+html.dark .text-\[\#1E2E2C\],
+html.dark .text-\[\#1E2F2C\],
+html.dark .text-\[\#1E3532\],
+html.dark .text-\[\#1F3633\],
+html.dark .text-\[\#1F3D37\],
+html.dark .text-\[\#1F413B\],
+html.dark .text-\[\#203431\],
+html.dark .text-\[\#223533\],
+html.dark .text-\[\#223734\],
+html.dark .text-\[\#253835\],
+html.dark .text-\[\#273B38\],
+html.dark .text-\[\#283C39\],
+html.dark .text-\[\#2A524A\],
+html.dark .text-\[\#2B3E3B\],
+html.dark .text-\[\#2C3F3B\],
+html.dark .text-\[\#2C413D\],
+html.dark .text-\[\#32403E\],
+html.dark .text-\[\#324542\],
+html.dark .text-\[\#334643\],
+html.dark .text-\[\#354844\],
+html.dark .text-\[\#364945\],
+html.dark .text-\[\#384A47\],
+html.dark .text-\[\#3B665E\],
+html.dark .text-\[\#3C4E4B\],
+html.dark .text-\[\#3E4F4C\],
+html.dark .text-\[\#3F524E\] {
+  color: #F3F7F5 !important;
+}
+
+/* Level 2: Body text, Clinical explanations, paragraphs, table values -> #C7D7D3 */
+html.dark .text-\[\#445653\],
+html.dark .text-\[\#475C57\],
+html.dark .text-\[\#485B57\],
+html.dark .text-\[\#495B57\],
+html.dark .text-\[\#4A5B57\],
+html.dark .text-\[\#4A5D5A\],
+html.dark .text-\[\#4B5E5A\],
+html.dark .text-\[\#4C5B58\],
+html.dark .text-\[\#4C5E5A\],
+html.dark .text-\[\#4D5E5A\],
+html.dark .text-\[\#4D5F5B\],
+html.dark .text-\[\#4F5E5B\],
+html.dark .text-\[\#50625E\],
+html.dark .text-\[\#516461\],
+html.dark .text-\[\#526460\],
+html.dark .text-\[\#526461\],
+html.dark .text-\[\#526561\],
+html.dark .text-\[\#546562\],
+html.dark .text-\[\#556764\],
+html.dark .text-\[\#556864\],
+html.dark .text-\[\#566864\],
+html.dark .text-\[\#576965\],
+html.dark .text-\[\#576A66\],
+html.dark .text-\[\#576B67\],
+html.dark .text-\[\#596D69\],
+html.dark .text-\[\#5C6E6B\],
+html.dark .text-\[\#5D6F6B\],
+html.dark .text-\[\#606E6B\],
+html.dark .text-\[\#627571\],
+html.dark .text-\[\#637370\],
+html.dark .text-\[\#637571\],
+html.dark .text-\[\#647370\],
+html.dark .text-\[\#64748B\],
+html.dark .text-\[\#657673\],
+html.dark .text-\[\#687875\],
+html.dark .text-\[\#687B77\] {
+  color: #C7D7D3 !important;
+}
+
+/* Level 3: Metadata, Labels, Units, Timestamps, Footnotes, Separators -> #8EAAA3 */
+html.dark .text-\[\#667774\],
+html.dark .text-\[\#697875\],
+html.dark .text-\[\#697976\],
+html.dark .text-\[\#697A76\],
+html.dark .text-\[\#697A77\],
+html.dark .text-\[\#697B77\],
+html.dark .text-\[\#6A7B78\],
+html.dark .text-\[\#6B7C79\],
+html.dark .text-\[\#6C7D7A\],
+html.dark .text-\[\#6C7E7A\],
+html.dark .text-\[\#6E807D\],
+html.dark .text-\[\#707D7A\],
+html.dark .text-\[\#70827E\],
+html.dark .text-\[\#71827E\],
+html.dark .text-\[\#738380\],
+html.dark .text-\[\#738480\],
+html.dark .text-\[\#758682\],
+html.dark .text-\[\#768784\],
+html.dark .text-\[\#788784\],
+html.dark .text-\[\#788885\],
+html.dark .text-\[\#788A86\],
+html.dark .text-\[\#7A8A87\],
+html.dark .text-\[\#7A8E89\],
+html.dark .text-\[\#7B8B88\],
+html.dark .text-\[\#7B958E\],
+html.dark .text-\[\#7C8D89\],
+html.dark .text-\[\#81928F\],
+html.dark .text-\[\#849491\],
+html.dark .text-\[\#869794\],
+html.dark .text-\[\#95ACA6\],
+html.dark .text-\[\#98A8A4\],
+html.dark .text-\[\#9AA7A4\],
+html.dark .text-\[\#9DB3AF\],
+html.dark .text-\[\#A5B2AF\] {
+  color: #8EAAA3 !important;
+}
+
+/* Level 4: Light Banner Texts & Badges -> Crisp and luminous in dark */
+html.dark .text-\[\#A6C4BE\],
+html.dark .text-\[\#A8C7C0\],
+html.dark .text-\[\#B8D5CF\],
+html.dark .text-\[\#BACEC9\],
+html.dark .text-\[\#C1CECB\],
+html.dark .text-\[\#C5DCD6\],
+html.dark .text-\[\#C6D0CD\],
+html.dark .text-\[\#CCD7D4\],
+html.dark .text-\[\#D1E7E2\],
+html.dark .text-\[\#D2E2DE\],
+html.dark .text-\[\#E2ECE9\],
+html.dark .text-\[\#F4F9F8\] {
+  color: #E2ECE9 !important;
+}
+
+/* Level 5: High-Luminance Semantic Accents in Dark */
+html.dark .text-\[\#2D6A5F\] {
+  color: #34D399 !important;
+}
+
+html.dark .hover\:text-\[\#2D6A5F\]:hover {
+  color: #6EE7B7 !important;
+}
+
+html.dark .text-\[\#B91C1C\],
+html.dark .text-\[\#DC2626\],
+html.dark .text-\[\#991B1B\] {
+  color: #F87171 !important;
+}
+
+html.dark .text-\[\#92400E\],
+html.dark .text-\[\#B45309\],
+html.dark .text-\[\#D97706\] {
+  color: #FBBF24 !important;
+}
+
+/* Interactive Controls & Inputs */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #14211E !important;
+  color: #F3F7F5 !important;
+  border-color: #273E38 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #657D77 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #34D399 !important;
+  outline-color: #34D399 !important;
+}
+
+/* Hover highlights in dark mode */
+html.dark .hover\:bg-\[\#F5F4EF\]:hover,
+html.dark .hover\:bg-\[\#F6F5F0\]:hover,
+html.dark .hover\:bg-\[\#FAF9F5\]:hover,
+html.dark .hover\:bg-\[\#F7F6F1\]:hover,
+html.dark .hover\:bg-\[\#EAE8DE\]:hover,
+html.dark .hover\:bg-\[\#EFEFE8\]:hover,
+html.dark .hover\:bg-\[\#F0EFE9\]:hover,
+html.dark .hover\:bg-\[\#ECEAE2\]:hover,
+html.dark .hover\:bg-white:hover {
+  background-color: #1B2B27 !important;
+}
+
+html.dark .hover\:text-\[\#112220\]:hover,
+html.dark .hover\:text-\[\#142624\]:hover,
+html.dark .hover\:text-\[\#152725\]:hover,
+html.dark .hover\:text-white:hover {
+  color: #FFFFFF !important;
+}
+
+/* Table rows alternating & selection */
+html.dark tr.border-b {
+  border-color: #1F332E !important;
+}
+
+html.dark tr:hover td {
+  background-color: #172622 !important;
+}
+
+/* SVGs and charts: Axes, trend lines, and data markers */
+html.dark svg line[stroke="#EAE8E2"],
+html.dark svg line[stroke="#EBE9E3"],
+html.dark svg line[stroke="#EFECE5"],
+html.dark svg line[stroke="#F4F2EC"],
+html.dark svg line[stroke="#F0EDE6"],
+html.dark svg line[stroke="#F1EFEA"],
+html.dark svg line[stroke="#E8E6DF"] {
+  stroke: #223631 !important;
+}
+
+/* Data Trend Lines in Dark Mode */
+html.dark svg path[stroke="#182C29"],
+html.dark svg line[stroke="#182C29"] {
+  stroke: #E2ECE9 !important;
+}
+
+html.dark svg circle[stroke="#182C29"] {
+  stroke: #E2ECE9 !important;
+  fill: #121C1A !important;
+}
+
+html.dark svg path[stroke="#DC2626"],
+html.dark svg line[stroke="#DC2626"] {
+  stroke: #F87171 !important;
+}
+
+html.dark svg path[stroke="#2D6A5F"],
+html.dark svg line[stroke="#2D6A5F"] {
+  stroke: #34D399 !important;
+}
+
+html.dark svg path[stroke="#D97706"],
+html.dark svg line[stroke="#D97706"] {
+  stroke: #FBBF24 !important;
+}
+
+html.dark svg circle[fill="#D97706"] {
+  fill: #FBBF24 !important;
+}
+
+html.dark svg circle[stroke="#2D6A5F"] {
+  stroke: #34D399 !important;
+  fill: #121C1A !important;
+}
+
+html.dark svg path[fill="#2D6A5F"] {
+  fill: #34D399 !important;
+}
+
+/* Chart text fills */
+html.dark svg text.fill-\[\#7E8B88\],
+html.dark svg text.fill-\[\#707D7A\],
+html.dark svg text.fill-\[\#7D8E8B\],
+html.dark svg text.fill-\[\#6D7F7B\],
+html.dark svg text.fill-\[\#869693\] {
+  fill: #8EAAA3 !important;
+}
+
+html.dark svg text.fill-\[\#687875\],
+html.dark svg text.fill-\[\#182C29\],
+html.dark svg text.fill-\[\#142624\] {
+  fill: #F3F7F5 !important;
 }

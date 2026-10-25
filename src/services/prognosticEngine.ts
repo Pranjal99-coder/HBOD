@@ -405,7 +405,7 @@ export function runClinicalPrognosisModel(patient: PatientProfile): PrognosticPr
     palliativePathways,
     clinicalRationale,
     modelMetadata: {
-      modelVersion: 'PrognosisFlow-ML-v4.8-Clinical',
+      modelVersion: 'PrognosAI-ML-v4.8-Clinical',
       trainedOnCohortSize: '184,200 longitudinal clinical trajectories (MIMIC-IV + UK Biobank)',
       rocAuc: 0.942,
       calibrationBrierScore: 0.076

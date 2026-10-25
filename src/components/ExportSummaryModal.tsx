@@ -37,7 +37,7 @@ export const ExportSummaryModal: React.FC<ExportSummaryModalProps> = ({
   };
 
   const fullReportText = `===================================================================
-PROGNOSIS FLOW — CLINICAL DECISION SUPPORT & PROGNOSTIC REPORT
+PROGNOSAI — CLINICAL DECISION SUPPORT & PROGNOSTIC REPORT
 Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
 ===================================================================
 
@@ -80,7 +80,7 @@ Validation: ROC-AUC ${prediction.modelMetadata.rocAuc} | Brier Score ${predictio
 Training Basis: ${prediction.modelMetadata.trainedOnCohortSize}
 
 DISCLAIMER:
-Prognosis Flow is a clinical decision support system for authorized healthcare professionals. 
+PrognosAI is a clinical decision support system for authorized healthcare professionals. 
 Predictions must be corroborated with full clinical history, tissue biopsy/imaging, and multidisciplinary tumor/palliative board review.
 ===================================================================`;
 

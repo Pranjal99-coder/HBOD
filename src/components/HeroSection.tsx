@@ -38,7 +38,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </h1>
 
             <p className="mt-6 text-lg sm:text-xl text-[#4A5B57] leading-relaxed max-w-2xl font-normal">
-              Prognosis Flow synthesizes patient-reported symptoms, longitudinal history, and biomarker panels using multi-modal machine learning models. Built to assist oncologists, neurologists, and palliative care specialists in early diagnosis, staging, and compassionate care planning.
+              PrognosAI synthesizes patient-reported symptoms, longitudinal history, and biomarker panels using multi-modal machine learning models. Built to assist oncologists, neurologists, and palliative care specialists in early diagnosis, staging, and compassionate care planning.
             </p>
 
             {/* Primary Action Row */}

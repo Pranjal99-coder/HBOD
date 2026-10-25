@@ -36,7 +36,7 @@ export function generatePatientPdfReport(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(255, 255, 255);
-    doc.text(`PROGNOSIS FLOW CLINICAL REPORT — ${patient.fullName.toUpperCase()} (${patient.mrn})`, marginLeft + 4, currentY + 5.5);
+    doc.text(`PROGNOSAI CLINICAL REPORT — ${patient.fullName.toUpperCase()} (${patient.mrn})`, marginLeft + 4, currentY + 5.5);
     currentY += 12;
   };
 
@@ -47,7 +47,7 @@ export function generatePatientPdfReport(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.setTextColor(255, 255, 255);
-  doc.text('PROGNOSIS FLOW', marginLeft + 6, currentY + 8);
+  doc.text('PROGNOSAI', marginLeft + 6, currentY + 8);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -358,7 +358,7 @@ export function generatePatientPdfReport(
     doc.setFontSize(6.5);
     doc.setTextColor(130, 145, 142);
     doc.text(
-      `Prognosis Flow CDS · AUROC ${prediction.modelMetadata.rocAuc} · Brier ${prediction.modelMetadata.calibrationBrierScore} · For licensed medical practitioner guidance only`,
+      `PrognosAI CDS · AUROC ${prediction.modelMetadata.rocAuc} · Brier ${prediction.modelMetadata.calibrationBrierScore} · For licensed medical practitioner guidance only`,
       marginLeft,
       pageHeight - 8
     );
@@ -368,5 +368,5 @@ export function generatePatientPdfReport(
 
   // Save the PDF file
   const sanitizedName = patient.fullName.replace(/[^a-zA-Z0-9]/g, '_');
-  doc.save(`${sanitizedName}_${patient.mrn}_Prognosis_Report.pdf`);
+  doc.save(`${sanitizedName}_${patient.mrn}_PrognosAI_Report.pdf`);
 }

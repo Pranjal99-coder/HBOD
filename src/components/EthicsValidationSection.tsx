@@ -16,7 +16,7 @@ export const EthicsValidationSection: React.FC = () => {
             Designed strictly as clinical decision support. Physician in the loop.
           </h2>
           <p className="mt-4 text-[#4D5E5A] text-base leading-relaxed">
-            Prognosis Flow adheres to rigorous AI ethics, transparent Bayesian calibration, and hospital data protection protocols. The platform never operates autonomously—every forecast empowers the attending physician's expert judgment.
+            PrognosAI adheres to rigorous AI ethics, transparent Bayesian calibration, and hospital data protection protocols. The platform never operates autonomously—every forecast empowers the attending physician's expert judgment.
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export const EthicsValidationSection: React.FC = () => {
           <div className="space-y-1">
             <span className="font-semibold text-[#182C29]">Official Clinical Decision Support Disclaimer:</span>
             <p className="leading-relaxed">
-              Prognosis Flow is an investigational clinical decision support system intended solely for licensed medical professionals. Predictions, survival functions, and differential rankings do not replace comprehensive histological biopsy, expert radiologic interpretation, or individualized multidisciplinary tumor/palliative board consultation.
+              PrognosAI is an investigational clinical decision support system intended solely for licensed medical professionals. Predictions, survival functions, and differential rankings do not replace comprehensive histological biopsy, expert radiologic interpretation, or individualized multidisciplinary tumor/palliative board consultation.
             </p>
           </div>
         </div>

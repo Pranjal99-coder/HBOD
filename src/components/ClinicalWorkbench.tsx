@@ -33,17 +33,22 @@ import {
   RotateCcw,
   FileEdit,
   ShieldCheck,
-  Download
+  Download,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { generatePatientPdfReport } from '../services/pdfReportGenerator';
 import { LabSparkline } from './LabSparkline';
 import { getPatient30DayLabHistory } from '../services/labHistoryService';
+import { useTheme } from '../context/ThemeContext';
 
 interface ClinicalWorkbenchProps {
   initialPatientId?: string;
 }
 
 export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPatientId }) => {
+  const { isDark, toggleTheme } = useTheme();
+
   // Current patient state
   const [selectedCohortIndex, setSelectedCohortIndex] = useState<number>(0);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
@@ -240,6 +245,26 @@ export const ClinicalWorkbench: React.FC<ClinicalWorkbenchProps> = ({ initialPat
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+              <button
+                onClick={toggleTheme}
+                type="button"
+                aria-label={isDark ? "Switch to daylight mode" : "Switch to low-light hospital night mode"}
+                title={isDark ? "High-Contrast Hospital Night Mode Active (Click for Daylight)" : "Switch to High-Contrast Hospital Night Mode (Low-Light Eye Relief)"}
+                className="px-3 py-2 text-xs font-semibold rounded-lg border border-[#DFDDD4] dark:border-[#2A3E39] text-[#283C39] dark:text-[#E2ECE9] bg-[#F7F6F1] dark:bg-[#15221F] hover:bg-[#ECEAE2] dark:hover:bg-[#1D2E29] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-[#FBBF24]" />
+                    <span>Daylight</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-[#2D6A5F]" />
+                    <span>Night Mode</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={handleDownloadDirectPdf}
                 disabled={isDownloadingPdf}
